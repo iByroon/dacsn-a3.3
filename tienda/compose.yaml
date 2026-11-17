@@ -1,5 +1,7 @@
 services:
   shop:
+    image: prestashop/prestashop:8.2
+  
 
   db:
 

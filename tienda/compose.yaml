@@ -1,13 +1,56 @@
 services:
   shop:
     image: prestashop/prestashop:8.2
-  
+    environment:
+      - PS_INSTALL_AUTO=1
+      - PS_LANGUAGE=es
+      - PS_COUNTRY=ES
+      - PS_DEMO_MODE=0
+      - PS_FOLDER_ADMIN=${PS_FOLDER_ADMIN}
+      - PS_FOLDER_INSTALL=${PS_FOLDER_ADMIN}
+      - PS_DOMAIN="${DIRECCION}:${PORT}"
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWD=${DB_PASS}
+    volumes:
+      - shop-volume:/var/www/html
+    networks:
+      - 
+    ports:
+      - "${PORT:-8080}:80"
+    depends_on:
+      db:
+        condition: service_healthy
+      correo:
+        condition: service_started
+    restart: unless-stopped
 
   db:
+    image: mariadb:11.8
+    environment:
+      - MARIADB_DATABASE=${DB_NAME}
+      - MARIADB_USER=${DB_USER}
+      - MARIADB_PASSWORD=${DB_PASS}
+      - MARIADB_RANDOM_ROOT_PASSWORD=1
+    volumes:
+      - db-volume:/var/lib/mysql
+    networks:
+      - 
+    ports:
 
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+    
+    restart: 
+    
   correo:
 
 volumes:
-
+  db-volume:
+  shop-volume:
 networks:
   interna:

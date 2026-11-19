@@ -6,13 +6,15 @@ services:
       - PS_LANGUAGE=es
       - PS_COUNTRY=ES
       - PS_DEMO_MODE=0
-      - PS_FOLDER_ADMIN=${PS_FOLDER_ADMIN}
-      - PS_FOLDER_INSTALL=${PS_FOLDER_ADMIN}
-      - PS_DOMAIN="${DIRECCION}:${PORT}"
-      - DB_SERVER=${DB_SERVER}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWD=${DB_PASS}
+      - PS_FOLDER_ADMIN=admin-shop
+      - PS_FOLDER_INSTALL=install-shop
+      - PS_DOMAIN=${DIRECCION:?Introduce tu direccion en el fichero .env}:${PORT:?Introduce el puerto en el fichero .env}
+      - DB_SERVER=db
+      - DB_NAME=${DB_NAME:-dbname}
+      - DB_USER=${DB_USER:-dbuser}
+      - DB_PASSWD=${DB_PASS:?Introduce la contraseña en el fichero .env}
+      - ADMIN_MAIL=${ADMIN_MAIL}
+      - ADMIN_PASSWD=${ADMIN_PASSWD}
     volumes:
       - shop-volume:/var/www/html
     networks:
@@ -29,9 +31,9 @@ services:
   db:
     image: mariadb:11.8
     environment:
-      - MARIADB_DATABASE=${DB_NAME}
-      - MARIADB_USER=${DB_USER}
-      - MARIADB_PASSWORD=${DB_PASS}
+      - MARIADB_DATABASE=${DB_NAME:-dbname}
+      - MARIADB_USER=${DB_USER:-dbuser}
+      - MARIADB_PASSWORD=${DB_PASS:?Introduce la contraseña en el fichero .env}
       - MARIADB_RANDOM_ROOT_PASSWORD=1
     volumes:
       - db-volume:/var/lib/mysql
@@ -56,13 +58,13 @@ services:
   adminer:
     image: adminer:5
     environment:
-      - ADMINER_DEFAULT_SERVER=${DB_SERVER}
+      - ADMINER_DEFAULT_SERVER=db
     networks:
       - interna
     ports:
-      - "${ADMINER_PORT:-8081}:8081"
+      - "${ADMINER_PORT:-8081}:8080"
     profiles: ["herramientas"]
-
+    restart: unless-stopped
 
 volumes:
   db-volume:

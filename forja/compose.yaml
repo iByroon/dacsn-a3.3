@@ -1,0 +1,89 @@
+services:
+  forgejo:
+    image: codeberg.org/forgejo/forgejo:17
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - FORGEJO__database__DB_TYPE=postgres
+      - FORGEJO__database__HOST=db
+      - FORGEJO__database__NAME=${DB_NAME:-dbname}
+      - FORGEJO__database__USER=${DB_USER:-dbuser}
+      - FORGEJO__database__PASSWD=${DB_PASS:?Introduce la contraseña en el fichero .env}
+      - FORGEJO__server__DOMAIN=${DIRECCION:?Introduce tu direccion en el fichero .env}:${PORT:?Introduce el puerto en el fichero .env}
+      - FORGEJO__server__ROOT_URL=
+      - FORGEJO__server__SSH_PORT=
+      - FORGEJO__server__SSH_LISTEN_PORT=
+      - FORGEJO__security__INSTALL_LOCK=
+      - FORGEJO__mailer__ENABLED=
+      - FORGEJO__mailer__PROTOCOL=
+      - FORGEJO__mailer__SMTP_ADDR=
+      - FORGEJO__mailer__SMTP_PORT=
+      - FORGEJO__mailer__FROM=
+      - FORGEJO__cache__ADAPTER=
+      - FORGEJO__cache__HOST=
+      - FORGEJO__session__PROVIDER=
+      - FORGEJO__session__PROVIDER_CONFIG=
+      - FORGEJO__queue__TYPE=
+      - FORGEJO__queue__CONN_STR=
+    volumes:
+      - ./forja:/data
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - interna
+    ports:
+      - "${FORGEJO_PORT:-3000}:3000"
+      - "${SSH_PORT:-2222}:22"
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+      correo:
+        condition: service_started
+    restart: unless-stopped
+
+  db:
+    image: postgres:18
+    environment:
+      - POSTGRES_DB=${DB_NAME:-dbname}
+      - POSTGRES_USER=${DB_USER:-dbuser}
+      - POSTGRES_PASSWORD=${DB_PASS:?Introduce la contraseña en el fichero .env}
+    volumes:
+      - pg-datos:/var/lib/postgresql
+    networks:
+      - interna
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+  
+  
+  cache:
+    image:
+    environment:
+      - 
+    
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  correo:
+    image: axllent/mailpit:v1.32
+    networks: 
+      - interna
+    ports:
+      - "${CORREO_PORT:-8025}:8025"      
+    restart: unless-stopped
+
+volumes:
+  pg-datos:
+
+networks:
+  interna:

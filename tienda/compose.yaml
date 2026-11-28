@@ -8,13 +8,13 @@ services:
       - PS_DEMO_MODE=0
       - PS_FOLDER_ADMIN=admin-shop
       - PS_FOLDER_INSTALL=install-shop
-      - PS_DOMAIN=${DIRECCION:?Introduce tu direccion en el fichero .env}:${PORT:?Introduce el puerto en el fichero .env}
+      - PS_DOMAIN=${DIRECCION:?Introduce tu direccion en el fichero .env}:${PORT:-8080}
       - DB_SERVER=db
       - DB_NAME=${DB_NAME:-dbname}
       - DB_USER=${DB_USER:-dbuser}
       - DB_PASSWD=${DB_PASS:?Introduce la contraseña en el fichero .env}
-      - ADMIN_MAIL=${ADMIN_MAIL}
-      - ADMIN_PASSWD=${ADMIN_PASSWD}
+      - ADMIN_MAIL=${ADMIN_MAIL:-admin@example.com}
+      - ADMIN_PASSWD=${ADMIN_PASSWD:?Introduce la contraseña del administrador en el fichero .env}
     volumes:
       - shop-volume:/var/www/html
     networks:

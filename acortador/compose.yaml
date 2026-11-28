@@ -18,30 +18,36 @@ services:
       start_period: 30s
     restart: unless-stopped
 
-    yourls:
-      image:
+  yourls:
+    image: yourls:1.10.3-fpm
+    environment:
+      -
+    volumes:
+      codigo:/var/www/html
+    networks:
+      - frontal
+      - interna
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
-      environment:
-
-      volumes:
-
-      networks:
-
-      depends_on:
-      
-      restart: unless-stopped
-
-    web:
-      image: nginx:1.30
-
-      volumes:
-
-      depends_on:
-
-      ports:
-
-      restart: unless-stopped
+  web:
+    image: nginx:1.30
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - codigo:/var/www/html:ro
+    networks:
+      - frontal
+    ports:
+      - "${PORT:-8080}:80"
+    depends_on:
+      - yourls
+    restart: unless-stopped
 
 volumes:
-
+  db-volume:
+  codigo:
 networks:
+  interna:
+  frontal:

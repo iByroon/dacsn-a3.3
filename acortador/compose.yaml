@@ -21,9 +21,15 @@ services:
   yourls:
     image: yourls:1.10.3-fpm
     environment:
-      -
+      - YOURLS_DB_HOST=db
+      - YOURLS_DB_NAME=${DB_NAME:-dbname}
+      - YOURLS_DB_USER=${DB_USER:-dbuser}
+      - YOURLS_DB_PASS=${DB_PASS:?Introduce la contraseña en el fichero .env}
+      - YOURLS_SITE=http://${DIRECCION:?Introduce la direccion en el fichero .env}:${PORT:-8080}
+      - YOURLS_USER=${YOURLS_USER:-admin}
+      - YOURLS_PASS=${YOURLS_PASS:?Introduce la contraseña de YOURLS en el fichero .env}
     volumes:
-      codigo:/var/www/html
+      - codigo:/var/www/html
     networks:
       - frontal
       - interna

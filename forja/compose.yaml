@@ -5,28 +5,28 @@ services:
       - USER_UID=1000
       - USER_GID=1000
       - FORGEJO__database__DB_TYPE=postgres
-      - FORGEJO__database__HOST=db
+      - FORGEJO__database__HOST=db:5432
       - FORGEJO__database__NAME=${DB_NAME:-dbname}
       - FORGEJO__database__USER=${DB_USER:-dbuser}
       - FORGEJO__database__PASSWD=${DB_PASS:?Introduce la contraseña en el fichero .env}
-      - FORGEJO__server__DOMAIN=${DIRECCION:?Introduce tu direccion en el fichero .env}:${PORT:?Introduce el puerto en el fichero .env}
-      - FORGEJO__server__ROOT_URL=
-      - FORGEJO__server__SSH_PORT=
-      - FORGEJO__server__SSH_LISTEN_PORT=
-      - FORGEJO__security__INSTALL_LOCK=
-      - FORGEJO__mailer__ENABLED=
-      - FORGEJO__mailer__PROTOCOL=
-      - FORGEJO__mailer__SMTP_ADDR=
-      - FORGEJO__mailer__SMTP_PORT=
-      - FORGEJO__mailer__FROM=
-      - FORGEJO__cache__ADAPTER=
-      - FORGEJO__cache__HOST=
-      - FORGEJO__session__PROVIDER=
-      - FORGEJO__session__PROVIDER_CONFIG=
-      - FORGEJO__queue__TYPE=
-      - FORGEJO__queue__CONN_STR=
+      - FORGEJO__server__DOMAIN=${DIRECCION:?Introduce tu direccion en el fichero .env}
+      - FORGEJO__server__ROOT_URL=http://${DIRECCION:?Introduce la dirección en el fichero .env}:${FORGEJO_PORT:-3000}
+      - FORGEJO__server__SSH_PORT=${SSH_PORT:-2222}
+      - FORGEJO__server__SSH_LISTEN_PORT=22
+      - FORGEJO__security__INSTALL_LOCK=true
+      - FORGEJO__mailer__ENABLED=true
+      - FORGEJO__mailer__PROTOCOL=smtp
+      - FORGEJO__mailer__SMTP_ADDR=correo
+      - FORGEJO__mailer__SMTP_PORT=1025
+      - FORGEJO__mailer__FROM=forgejo@example.com
+      - FORGEJO__cache__ADAPTER=redis
+      - FORGEJO__cache__HOST=redis://:${REDIS_PASS:?Introduce la contraseña de redis en el fichero .env}@cache:6379/0
+      - FORGEJO__session__PROVIDER=redis
+      - FORGEJO__session__PROVIDER_CONFIG=redis://:${REDIS_PASS:?Introduce la contraseña de redis en el fichero .env}@cache:6379/0
+      - FORGEJO__queue__TYPE=redis
+      - FORGEJO__queue__CONN_STR=redis://:${REDIS_PASS:?Introduce la contraseña de redis en el fichero .env}@cache:6379/0
     volumes:
-      - ./forja:/data
+      - forgejo-volume:/data
       - /etc/localtime:/etc/localtime:ro
     networks:
       - interna
@@ -68,11 +68,14 @@ services:
       REDIS_PASSWORD: ${REDIS_PASS:?falta en el fichero .env}
     volumes:
       - cache-datos:/data
+    networks:
+      - interna
     healthcheck:
       test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
       interval: 5s
       timeout: 3s
       retries: 10
+    restart: unless-stopped
 
   correo:
     image: axllent/mailpit:v1.32
@@ -83,7 +86,9 @@ services:
     restart: unless-stopped
 
 volumes:
+  forgejo-volume:
   pg-datos:
+  cache-datos:
 
 networks:
   interna:
